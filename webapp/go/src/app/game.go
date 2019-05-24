@@ -117,6 +117,9 @@ var mItems = map[int]mItem{
 	13: {13, 11000, 11000, 11000, 23, 10000, 2, 2, 29},
 }
 
+addings := make(map[string][]Adding{})
+addings := make(map[string][]Adding{})
+
 func (item *mItem) GetPower(count int) *big.Int {
 	// power(x):=(cx+1)*d^(ax+b)
 	a := item.Power1
@@ -341,18 +344,20 @@ func getStatus(roomName string) (*GameStatus, error) {
 		return nil, fmt.Errorf("updateRoomTime failure")
 	}
 
-	addings := []Adding{}
-	err = tx.Select(&addings, "SELECT time, isu FROM adding WHERE room_name = ?", roomName)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
+	if addings[roomName] == nil {
+		err = tx.Select(addings[roomName], "SELECT time, isu FROM adding WHERE room_name = ?", roomName)
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
 	}
 
-	buyings := []Buying{}
-	err = tx.Select(&buyings, "SELECT item_id, ordinal, time FROM buying WHERE room_name = ?", roomName)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
+	if buyings[roomName] == nil {
+		err = tx.Select(buyings[roomName], "SELECT item_id, ordinal, time FROM buying WHERE room_name = ?", roomName)
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
 	}
 
 	err = tx.Commit()
